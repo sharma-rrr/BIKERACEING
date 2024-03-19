@@ -1,14 +1,17 @@
 import express ,{ Request, Response, NextFunction} from 'express';
-
+var cron = require('node-cron');
 var cors:any = require('cors');
 
  import auth from './middleware/auth';
+// cronjob
+import cronjob from './controllers/cron'
 
 import userRoute from './routes/user.routes'
 import memberRoute from './routes/member.routes'
+import adminRoute from './routes/admin.routes'
+
 // import {validationError} from './helpers/validator.controller';
 
-var cron = require('node-cron');
 const app=express();
 app.options('*', cors());
 const server = require('http').createServer(app);
@@ -30,6 +33,8 @@ app.use("/profile", express.static(__dirname + "/profile"));
 //  app.use('/api/v1',)
  app.use('/api/v1/auth',userRoute);
  app.use('/api/v1/member',auth,memberRoute);
+ app.use('/api/v1/admin',auth,adminRoute);
+
  app.get("/api/v1/welcome", auth, (req, res) => {
   res.status(200).send("data get successfully ");
 });
@@ -53,13 +58,13 @@ app.use((err:any, req:Request, res:Response, next:any) => {
   server.listen(port,async()=>{
     console.log('App Started');
   
-  // cron.schedule('*/3 * * * *', async () => {
-  //     console.log('running a task every 10 min');
-  //     await codeController.transferIdDepositAssets();
-  //    // await tradeController.putOrderOnBinance();
-  //   });
-  
-  
+
+    // Schedule the cron job to run every night at 11:59 PM
+  cron.schedule('59 23 * * *',async () => {
+  console.log('running a task every 12pm');
+  await cronjob.updateDailyRewards()
+});
+
   })
  });
 
